@@ -22,15 +22,28 @@ isBoardFull([H|T]):- nonvar(H), isBoardFull(T).
 
 
 
-move(Move,Position,NewPosition) :- fall(Board, Move, Index),playMove(Postion,Index,NewPosition,_).
+move(Move,Position,NewPosition) :- fall(Position, Move, Index),playMove(Postion,Index,NewPosition,_).
 
-evaluate_and_choose([Move|Moves],Position,Record,Best):- 
+
+
+evaluate_and_choose([Move|Moves],Position,Depth,Flag,Record,Best):- 
     move(Move,Position,NewPosition),
-    value(NewPosition,Value),
+    minimax(Depth,NewPosition,Flag,MoveX,Value).
     update(Move,Value,Record,NewRecord),
-    evaluate_and_choose(Moves,Position,NewRecord,Best).
-    
-evaluate_and_choose([],Position,(Move,Value),Move).
+    evaluate_and_choose(Moves,Position,Depth,Flag,NewRecord,Best).
+
+evaluate_and_choose([],Position,Depth,Flag,Record,Record).
+
+
+minimax(0,Position,Flag,Move,Value):- value(Position,V),Value:=V*Flag.
+
+minimax(Depth,Position,Flag,Move,Value):- 
+    D > 0, 
+    set_of(M,move(Position,M),Moves),
+    D1 := D - 1,
+    Flag := -Flag, 
+    evaluate_and_choose(Moves,Position,D1,Flag,(nil,-1000),(Move,Value)).
+
 
 update(Move,Value,(Move1,Value1),(Move1,Value1)):- Value <= Value1.
 
@@ -40,7 +53,8 @@ column_is_empty(X) :- nth0(X,[0|1,2,3,4,5,6],Elem),var(Elem).
 
 possible_move([H|Q],[]) :- column_is_empty(H),possible_move(Q,[H|_]).
  
-ia(Board,Index,_) :- possible_move([0|1,2,3,4,5,6],Moves),evaluate_and_choose(Moves,Board,Record Best).
+
+ia(Board,Index,_) :- possible_move([0|1,2,3,4,5,6],Moves),evaluate_and_choose(Moves,Board,Depth,Flag,Record,Best).
 
 
 
